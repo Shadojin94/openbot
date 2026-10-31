@@ -120,7 +120,7 @@ async function drawHeader(
   context.fillStyle = colors.muted;
   context.font = `500 24px ${FONT}`;
   context.fillText(t("settings.profile.share.caption"), textX, PAD + 78);
-  await drawLogo(context, WIDTH - PAD - logoSize, PAD + (AVATAR - logoSize) / 2, logoSize, colors);
+  await drawLogo(context, WIDTH - PAD - logoSize, PAD + (AVATAR - logoSize) / 2, logoSize);
 }
 
 /**

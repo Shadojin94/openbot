@@ -101,7 +101,6 @@
 }
 
 .join-server-entry-logo {
-  --app-logo-background: var(--openbot-surface-light);
   width: 64px;
   height: 64px;
   flex: 0 0 auto;
@@ -137,7 +136,6 @@
 }
 
 .join-server-identity-logo {
-  --app-logo-background: var(--openbot-surface-light);
   width: 88px;
   height: 88px;
   flex: 0 0 auto;

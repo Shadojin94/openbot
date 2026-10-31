@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
 import Svg, { Circle, Defs, RadialGradient, Rect, Stop } from "react-native-svg";
@@ -36,6 +37,7 @@ const HALO_STOPS = [
 ] as const;
 export function AppLogo({ animation = "none", interactive = false, size = VIEWBOX_SIZE }: AppLogoProps) {
   const { t } = useText();
+  const haloId = `zetabot-halo-${useId().replaceAll(":", "")}`;
   const { handlePressIn, leftEyeAnimatedStyle, rightEyeAnimatedStyle } = useAppLogoMotion({ animation, size });
   const eyeLayerStyle = {
     height: size,
@@ -53,14 +55,14 @@ export function AppLogo({ animation = "none", interactive = false, size = VIEWBO
     >
       <Svg width={size} height={size} viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}>
         <Defs>
-          <RadialGradient id="zetabot-halo" cx={120} cy={120} r={HALO_RADIUS} gradientUnits="userSpaceOnUse">
+          <RadialGradient id={haloId} cx={120} cy={120} r={HALO_RADIUS} gradientUnits="userSpaceOnUse">
             {HALO_STOPS.map((stop) => (
               <Stop key={stop.offset} offset={stop.offset} stopColor={stop.color} stopOpacity={stop.opacity} />
             ))}
           </RadialGradient>
         </Defs>
         <Rect width={VIEWBOX_SIZE} height={VIEWBOX_SIZE} rx={50} ry={50} fill={BACKGROUND_COLOR} />
-        <Circle cx={120} cy={120} r={HALO_RADIUS} fill="url(#zetabot-halo)" />
+        <Circle cx={120} cy={120} r={HALO_RADIUS} fill={`url(#${haloId})`} />
       </Svg>
 
       <Animated.View

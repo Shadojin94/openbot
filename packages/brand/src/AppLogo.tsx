@@ -1,4 +1,4 @@
-import { createEffect, createSignal, createUniqueId, flush, For, onCleanup } from "solid-js";
+import { createEffect, createSignal, createUniqueId, For, flush, onCleanup } from "solid-js";
 import { APP_LOGO_CORNER, APP_LOGO_EYES, APP_LOGO_HALO, APP_LOGO_HALO_STOPS, APP_LOGO_SIZE } from "./app-logo-shape";
 
 export type AppLogoAnimation = "none" | "blink" | "look-around" | "surprised";
@@ -167,7 +167,7 @@ export function AppLogo(props: AppLogoProps) {
           gradientUnits="userSpaceOnUse"
         >
           <For each={APP_LOGO_HALO_STOPS}>
-            {(stop) => <stop offset={stop().offset} stop-color={stop().color} stop-opacity={stop().opacity} />}
+            {(stop) => <stop offset={stop.offset} stop-color={stop.color} stop-opacity={stop.opacity} />}
           </For>
         </radialGradient>
       </defs>

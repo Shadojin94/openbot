@@ -28,9 +28,8 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  /* Both eyes use the longer stroke's length, so they draw at the same time. */
+  /* The round Zetabot eyes open together, then blink until the app is ready. */
   .startup-splash-logo .app-logo-eye {
-    stroke-dasharray: var(--splash-eye-length) calc(var(--splash-eye-length) + 24px);
     animation:
       startup-splash-eye-draw 480ms var(--openbot-ease-in-out) 160ms backwards,
       app-logo-blink 4.8s var(--openbot-ease-in-out) 1s infinite;
@@ -45,10 +44,8 @@
 
 @keyframes startup-splash-eye-draw {
   from {
-    stroke-dashoffset: calc(var(--splash-eye-length) + 12px);
-  }
-  to {
-    stroke-dashoffset: 0px;
+    opacity: 0;
+    transform: scaleY(0.08);
   }
 }
 
