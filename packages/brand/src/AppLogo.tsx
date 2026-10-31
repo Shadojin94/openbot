@@ -1,5 +1,5 @@
-import { createEffect, createSignal, flush, onCleanup } from "solid-js";
-import { APP_LOGO_CORNER, APP_LOGO_EYE_POINTS, APP_LOGO_SIZE } from "./app-logo-shape";
+import { createEffect, createSignal, createUniqueId, flush, For, onCleanup } from "solid-js";
+import { APP_LOGO_CORNER, APP_LOGO_EYES, APP_LOGO_HALO, APP_LOGO_HALO_STOPS, APP_LOGO_SIZE } from "./app-logo-shape";
 
 export type AppLogoAnimation = "none" | "blink" | "look-around" | "surprised";
 export type AppLogoVariant = "production" | "dev" | "preview";
@@ -31,6 +31,7 @@ export function AppLogo(props: AppLogoProps) {
   let easterEggTimer: number | undefined;
   let logoElement: SVGSVGElement | undefined;
   let rapidClicks: number[] = [];
+  const haloId = `app-logo-halo-${createUniqueId()}`;
 
   function shouldReduceMotion(): boolean {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
@@ -142,7 +143,7 @@ export function AppLogo(props: AppLogoProps) {
       data-variant={props.variant}
       viewBox={`0 0 ${APP_LOGO_SIZE} ${APP_LOGO_SIZE}`}
       aria-hidden={props.interactive ? undefined : "true"}
-      aria-label={props.interactive ? "Animate OpenBot logo" : undefined}
+      aria-label={props.interactive ? "Animate Zetabot logo" : undefined}
       role={props.interactive ? "button" : undefined}
       tabindex={props.interactive ? 0 : undefined}
       onClick={handleClick}
@@ -157,11 +158,41 @@ export function AppLogo(props: AppLogoProps) {
         rx={APP_LOGO_CORNER}
         ry={APP_LOGO_CORNER}
       />
+      <defs>
+        <radialGradient
+          id={haloId}
+          cx={APP_LOGO_HALO.cx}
+          cy={APP_LOGO_HALO.cy}
+          r={APP_LOGO_HALO.r}
+          gradientUnits="userSpaceOnUse"
+        >
+          <For each={APP_LOGO_HALO_STOPS}>
+            {(stop) => <stop offset={stop().offset} stop-color={stop().color} stop-opacity={stop().opacity} />}
+          </For>
+        </radialGradient>
+      </defs>
+      <circle
+        class="app-logo-halo"
+        cx={APP_LOGO_HALO.cx}
+        cy={APP_LOGO_HALO.cy}
+        r={APP_LOGO_HALO.r}
+        fill={`url(#${haloId})`}
+      />
       <g class="app-logo-eye-motion">
-        <polyline class="app-logo-eye app-logo-eye-left" points={APP_LOGO_EYE_POINTS.left} />
+        <circle
+          class="app-logo-eye app-logo-eye-left"
+          cx={APP_LOGO_EYES.left.cx}
+          cy={APP_LOGO_EYES.cy}
+          r={APP_LOGO_EYES.r}
+        />
       </g>
       <g class="app-logo-eye-motion">
-        <polyline class="app-logo-eye app-logo-eye-right" points={APP_LOGO_EYE_POINTS.right} />
+        <circle
+          class="app-logo-eye app-logo-eye-right"
+          cx={APP_LOGO_EYES.right.cx}
+          cy={APP_LOGO_EYES.cy}
+          r={APP_LOGO_EYES.r}
+        />
       </g>
     </svg>
   );

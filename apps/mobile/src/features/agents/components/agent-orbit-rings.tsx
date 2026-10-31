@@ -1,142 +1,114 @@
 import { type PropsWithChildren, useEffect, useId } from "react";
-import { View } from "react-native";
+import { useColorScheme, View } from "react-native";
 import Animated, {
   cancelAnimation,
   Easing,
   ReduceMotion,
-  type SharedValue,
-  useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
 import Svg, { Defs, LinearGradient, Path, Stop } from "react-native-svg";
-import {
-  ORBIT_CYCLE,
-  type OrbitRing,
-  orbitFrameIndex,
-  orbitFrames,
-  orbitRings,
-  prepareOrbitFrames,
-} from "@/features/agents/model/bloub-orbit";
 import { useMotionPreference } from "@/shared/lib/motion";
 import { useScreenFocusedWhile } from "@/shared/lib/use-screen-focused-while";
 
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-/**
- * The desktop draws the face at 128% of the avatar box and the rings at 158%. The phone draws the
- * face in the box, so the rings reach past it by the same proportion.
- */
-const RING_SCALE = 1.58 / 1.28;
-const GRADIENT_OFFSETS = [0, 0.5, 1];
+/** The Zetamind spectral thread (design system Rev. 6), dark and light, as on the desktop. */
+const SPECTRE_DARK = ["#22e4ff", "#3d7bff", "#8b5cf6", "#c026d3", "#ff4fa3", "#ff8a3d", "#ffd84d", "#5cffb0"];
+const SPECTRE_LIGHT = ["#0099ae", "#3d7bff", "#8b5cf6", "#c026d3", "#ff3395", "#ec5e00", "#ac8600", "#00a053"];
+/** One turn of the thread, in milliseconds: the same pace as the desktop ring. */
+const TURN_MS = 2400;
+/** The ring sits this many points outside the avatar box, and is this thick. */
+const RING_GAP = 3;
+const RING_WIDTH = 2;
 
-function OrbitArcPath({
-  clock,
-  gradientId,
-  index,
-  layer,
-  ring,
-}: {
-  clock: SharedValue<number>;
-  gradientId: string;
-  index: number;
-  layer: "back" | "front";
-  ring: OrbitRing;
-}) {
-  const props = useAnimatedProps(() => {
-    const frames = orbitFrames.get();
-    const arc = frames.length > 0 ? frames[orbitFrameIndex(clock.get(), frames.length)]?.[index] : undefined;
-    return { d: arc ? arc[layer] : "", opacity: arc ? arc.opacity : 0 };
-  });
-  return (
-    <AnimatedPath
-      fill="none"
-      stroke={`url(#${gradientId})`}
-      strokeLinecap="round"
-      strokeWidth={ring.width}
-      animatedProps={props}
-    />
-  );
+function pointOnCircle(center: number, radius: number, angle: number): { x: number; y: number } {
+  return { x: center + radius * Math.cos(angle), y: center + radius * Math.sin(angle) };
 }
 
-function OrbitLayer({ clock, layer, size }: { clock: SharedValue<number>; layer: "back" | "front"; size: number }) {
-  const id = `orbit-${useId().replaceAll(":", "")}`;
-  const rings = orbitRings();
-  const box = size * RING_SCALE;
+/**
+ * The thread as eight arcs, each fading into the next colour, so the ring reads as one continuous
+ * spectrum. react-native-svg has no conic gradient, which the desktop uses.
+ */
+function SpectralRing({ box }: { box: number }) {
+  const id = `fil-${useId().replaceAll(":", "")}`;
+  const colors = useColorScheme() === "light" ? SPECTRE_LIGHT : SPECTRE_DARK;
+  const center = box / 2;
+  const radius = center - RING_WIDTH / 2;
+  const step = (2 * Math.PI) / colors.length;
   return (
-    <Svg
-      accessibilityElementsHidden
-      accessible={false}
-      height={box}
-      pointerEvents="none"
-      style={{ position: "absolute", left: (size - box) / 2, top: (size - box) / 2 }}
-      viewBox="-158 -158 316 316"
-      width={box}
-    >
+    <Svg accessibilityElementsHidden accessible={false} height={box} pointerEvents="none" width={box}>
       <Defs>
-        {rings.map((ring) => (
-          <LinearGradient
-            key={ring.id}
-            id={`${id}-${ring.id}`}
-            gradientUnits="userSpaceOnUse"
-            x1={ring.gradient.x1}
-            y1={ring.gradient.y1}
-            x2={ring.gradient.x2}
-            y2={ring.gradient.y2}
-          >
-            {ring.gradient.stops.map((color, index) => (
-              <Stop key={color} offset={GRADIENT_OFFSETS[index] ?? 1} stopColor={color} />
-            ))}
-          </LinearGradient>
-        ))}
+        {colors.map((color, index) => {
+          const from = pointOnCircle(center, radius, index * step);
+          const to = pointOnCircle(center, radius, (index + 1) * step);
+          return (
+            <LinearGradient
+              key={color}
+              id={`${id}-${index}`}
+              gradientUnits="userSpaceOnUse"
+              x1={from.x}
+              y1={from.y}
+              x2={to.x}
+              y2={to.y}
+            >
+              <Stop offset={0} stopColor={color} />
+              <Stop offset={1} stopColor={colors[(index + 1) % colors.length] ?? color} />
+            </LinearGradient>
+          );
+        })}
       </Defs>
-      {rings.map((ring, index) => (
-        <OrbitArcPath
-          key={ring.id}
-          clock={clock}
-          gradientId={`${id}-${ring.id}`}
-          index={index}
-          layer={layer}
-          ring={ring}
-        />
-      ))}
+      {colors.map((color, index) => {
+        const from = pointOnCircle(center, radius, index * step);
+        const to = pointOnCircle(center, radius, (index + 1) * step);
+        return (
+          <Path
+            key={color}
+            d={`M ${from.x} ${from.y} A ${radius} ${radius} 0 0 1 ${to.x} ${to.y}`}
+            fill="none"
+            stroke={`url(#${id}-${index})`}
+            strokeWidth={RING_WIDTH}
+          />
+        );
+      })}
     </Svg>
   );
 }
 
 /**
- * The desktop's orbit rings around a working agent. The half of each ring behind the body draws
- * under the avatar and the other half over it. With reduced motion, or with the Settings switch for
- * faces off, the rings hold still, as on the desktop. They stop while the screen is not focused.
+ * The Zetamind spectral thread that turns around a working agent, in place of the old orbit rings.
+ * With reduced motion, or with the Settings switch for faces off, the thread holds still, as on the
+ * desktop. It stops while the screen is not focused.
  */
 export function AgentOrbitRings({ active, size, children }: PropsWithChildren<{ active: boolean; size: number }>) {
-  const clock = useSharedValue(0);
+  const turn = useSharedValue(0);
   const animate = useMotionPreference("agentFaces");
   const focused = useScreenFocusedWhile(active && animate);
   useEffect(() => {
-    if (active) prepareOrbitFrames();
-  }, [active]);
-  useEffect(() => {
-    clock.set(0);
+    turn.set(0);
     if (!active || !animate || !focused) return;
-    clock.set(
+    turn.set(
       withRepeat(
-        withTiming(ORBIT_CYCLE, {
-          duration: ORBIT_CYCLE * 1000,
-          easing: Easing.linear,
-          reduceMotion: ReduceMotion.Never,
-        }),
+        withTiming(360, { duration: TURN_MS, easing: Easing.linear, reduceMotion: ReduceMotion.Never }),
         -1,
         false,
       ),
     );
-    return () => cancelAnimation(clock);
-  }, [active, animate, clock, focused]);
+    return () => cancelAnimation(turn);
+  }, [active, animate, turn, focused]);
+  const turning = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.get()}deg` }] }));
+  const box = size + RING_GAP * 2;
   return (
     <View style={{ width: size, height: size }}>
-      {active ? <OrbitLayer clock={clock} layer="back" size={size} /> : null}
       {children}
-      {active ? <OrbitLayer clock={clock} layer="front" size={size} /> : null}
+      {active ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[{ position: "absolute", left: -RING_GAP, top: -RING_GAP, width: box, height: box }, turning]}
+        >
+          <SpectralRing box={box} />
+        </Animated.View>
+      ) : null}
     </View>
   );
 }

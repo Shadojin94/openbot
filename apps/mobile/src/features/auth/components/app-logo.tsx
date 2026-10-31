@@ -1,7 +1,6 @@
 import { Pressable, View } from "react-native";
 import Animated from "react-native-reanimated";
-import Svg, { Polyline, Rect } from "react-native-svg";
-import { useCSSVariable } from "uniwind";
+import Svg, { Circle, Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
 import { type AppLogoAnimation, useAppLogoMotion } from "@/features/auth/components/use-app-logo-motion";
 import { useText } from "@/shared/lib/text";
@@ -13,22 +12,30 @@ export interface AppLogoProps {
 }
 
 const VIEWBOX_SIZE = 240;
-const LEFT_EYE_CENTER_X = 68.88;
-const RIGHT_EYE_CENTER_X = 170.88;
-const EYE_CENTER_Y = 117;
-const LEFT_EYE_POINTS =
-  "43.55 93.61 64.69 81.41 36.48 108.04 79.67 83.11 35.93 122.88 91.58 90.74 38.9 132.69 97.66 98.76 42.44 138.88 100.43 105.4 46.9 143.83 101.97 112.04 55.08 149.51 101.83 122.52 73.01 152.43 94.14 140.23";
-const RIGHT_EYE_POINTS =
-  "145.65 93.61 166.79 81.41 140.83 101.52 175.58 81.46 138.3 109.53 183.18 83.63 137.55 117.43 189.67 87.33 139.67 129.39 197.88 95.78 142.92 136.32 201.52 102.48 149.03 143.86 204.07 112.08 159.14 150.37 203.51 124.75 169.28 152.61 199.82 134.98";
-
-function resolveColor(value: string | number | undefined, fallback: string): string {
-  return String(value ?? fallback);
-}
-
+/** The Zetabot mark (Lee's v4), drawn on a 512 grid and scaled to the 240 viewBox. */
+const SCALE = VIEWBOX_SIZE / 512;
+const LEFT_EYE_CENTER_X = 222 * SCALE;
+const RIGHT_EYE_CENTER_X = 290 * SCALE;
+const EYE_CENTER_Y = 120;
+const EYE_RADIUS = 18 * SCALE;
+const HALO_RADIUS = 196.8 * SCALE;
+const BACKGROUND_COLOR = "#000000";
+const EYE_COLOR = "#f5f5f7";
+/** The halo as radial gradient stops: transparent inside, the eight spectral colours, transparent outside. */
+const HALO_STOPS = [
+  { offset: 0.86, color: "#c026d3", opacity: 0 },
+  { offset: 0.8775, color: "#c026d3", opacity: 1 },
+  { offset: 0.8925, color: "#8b5cf6", opacity: 1 },
+  { offset: 0.9075, color: "#3d7bff", opacity: 1 },
+  { offset: 0.9225, color: "#22e4ff", opacity: 1 },
+  { offset: 0.9375, color: "#5cffb0", opacity: 1 },
+  { offset: 0.9525, color: "#ffd84d", opacity: 1 },
+  { offset: 0.9675, color: "#ff8a3d", opacity: 1 },
+  { offset: 0.9825, color: "#ff4fa3", opacity: 1 },
+  { offset: 1, color: "#ff4fa3", opacity: 0 },
+] as const;
 export function AppLogo({ animation = "none", interactive = false, size = VIEWBOX_SIZE }: AppLogoProps) {
   const { t } = useText();
-  const backgroundColor = resolveColor(useCSSVariable("--openbot-logo-production"), "#d6adf2");
-  const eyeColor = resolveColor(useCSSVariable("--openbot-logo-eye"), "#040007");
   const { handlePressIn, leftEyeAnimatedStyle, rightEyeAnimatedStyle } = useAppLogoMotion({ animation, size });
   const eyeLayerStyle = {
     height: size,
@@ -45,7 +52,15 @@ export function AppLogo({ animation = "none", interactive = false, size = VIEWBO
       importantForAccessibility="no-hide-descendants"
     >
       <Svg width={size} height={size} viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}>
-        <Rect width={VIEWBOX_SIZE} height={VIEWBOX_SIZE} rx={50} ry={50} fill={backgroundColor} />
+        <Defs>
+          <RadialGradient id="zetabot-halo" cx={120} cy={120} r={HALO_RADIUS} gradientUnits="userSpaceOnUse">
+            {HALO_STOPS.map((stop) => (
+              <Stop key={stop.offset} offset={stop.offset} stopColor={stop.color} stopOpacity={stop.opacity} />
+            ))}
+          </RadialGradient>
+        </Defs>
+        <Rect width={VIEWBOX_SIZE} height={VIEWBOX_SIZE} rx={50} ry={50} fill={BACKGROUND_COLOR} />
+        <Circle cx={120} cy={120} r={HALO_RADIUS} fill="url(#zetabot-halo)" />
       </Svg>
 
       <Animated.View
@@ -57,14 +72,7 @@ export function AppLogo({ animation = "none", interactive = false, size = VIEWBO
         ]}
       >
         <Svg width={size} height={size} viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}>
-          <Polyline
-            points={LEFT_EYE_POINTS}
-            fill="none"
-            stroke={eyeColor}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={9.5}
-          />
+          <Circle cx={LEFT_EYE_CENTER_X} cy={EYE_CENTER_Y} r={EYE_RADIUS} fill={EYE_COLOR} />
         </Svg>
       </Animated.View>
 
@@ -77,14 +85,7 @@ export function AppLogo({ animation = "none", interactive = false, size = VIEWBO
         ]}
       >
         <Svg width={size} height={size} viewBox={`0 0 ${VIEWBOX_SIZE} ${VIEWBOX_SIZE}`}>
-          <Polyline
-            points={RIGHT_EYE_POINTS}
-            fill="none"
-            stroke={eyeColor}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={9.5}
-          />
+          <Circle cx={RIGHT_EYE_CENTER_X} cy={EYE_CENTER_Y} r={EYE_RADIUS} fill={EYE_COLOR} />
         </Svg>
       </Animated.View>
     </View>

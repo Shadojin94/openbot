@@ -163,6 +163,9 @@
   --openbot-chart-storage-app: var(--openbot-text-dim);
   --openbot-logo-production: #d6adf2;
   --openbot-logo-eye: #040007;
+  /* The Zetamind spectral thread (design system Rev. 6): the one colour of what is alive, such as the
+     ring that turns around a working agent and the Zetabot halo. */
+  --openbot-spectre: #22e4ff, #3d7bff, #8b5cf6, #c026d3, #ff4fa3, #ff8a3d, #ffd84d, #5cffb0, #22e4ff;
   /* The eyes of the release logo. The logo color setting changes it with `--openbot-logo-production`;
      a dev or preview logo keeps `--openbot-logo-eye`. */
   --openbot-logo-production-eye: var(--openbot-logo-eye);
