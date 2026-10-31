@@ -128,32 +128,11 @@ export class HostReleaseService {
 
 /** The version of the latest published release for `target`. Rejects on any fault of the feed. */
 async function fetchLatestRelease(target: ReleaseTarget, request: typeof fetch, signal: AbortSignal): Promise<string> {
-  const response = await request(`https://github.com/nightly-labs/openbot/releases/latest/download/${target.feed}`, {
-    signal: AbortSignal.any([signal, AbortSignal.timeout(15_000)]),
-  });
-  if (!response.ok || !response.body) {
-    await response.body?.cancel();
-    throw new Error("Release feed unavailable");
-  }
-  const reader = response.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  try {
-    for (;;) {
-      const next = await reader.read();
-      if (next.done) break;
-      size += next.value.byteLength;
-      if (size > 65_536) throw new Error("Release feed too large");
-      chunks.push(next.value);
-    }
-  } finally {
-    await reader.cancel();
-    reader.releaseLock();
-  }
-  const manifest = Schema.decodeUnknownSync(ReleaseManifest)(parse(Buffer.concat(chunks).toString("utf8")));
-  if (!isValidSemver(manifest.version) || !manifest.files.some((file) => file.url === target.asset(manifest.version)))
-    throw new Error("No compatible release");
-  return manifest.version;
+  // ZETABOT : aucune vérification de version auprès de GitHub/openbot. Le feed n'est jamais appelé.
+  void target;
+  void request;
+  void signal;
+  throw new Error("Release feed disabled in Zetabot");
 }
 
 /** The latest Linux release for `arch`, for the hosted installer. */

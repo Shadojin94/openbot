@@ -1,0 +1,46 @@
+MISSION (clone build — Zetabot). Tu es un agent d'exécution à contexte neuf. Tu ne poses pas de question : tu produis, tu lances, tu corriges, tu rends compte.
+
+## Contexte
+Dépôt forké : https://github.com/Shadojin94/openbot (branche `zetabot`, déjà poussée).
+Copie locale : C:\Users\cedri\Documents\01_EN_COURS\Openbot\openbot-src (branche `zetabot`).
+`gh` est authentifié sur le compte Shadojin94 (scopes repo + workflow).
+
+Le dépôt est OpenBot 0.56.0 (Electron + TypeScript, gestionnaire de paquets `bun@1.4.2`, Node >= 24).
+Des patchs Zetabot sont DÉJÀ faits et poussés : télémétrie coupée (`packages/telemetry/src/transport.ts`,
+`src/main/application-services.ts` → `analyticsEnabled = false`, `src/renderer/src/analytics.ts` → `#disabled = true`),
+rebrand dans `electron-builder.yml` (productName Zetabot, appId run.zetamind.zetabot, protocoles zetabot+openbot,
+`publish: null`, notarize/hardenedRuntime false, icônes `build/zetabot-1024.png`).
+**Ne reviens pas sur ces patchs.** Tu peux les corriger seulement s'ils cassent la compilation, et tu le signales.
+
+## Objectif vérifiable
+Trois artefacts produits par GitHub Actions sur le fork, téléchargeables :
+1. `Zetabot-0.56.0-x64.exe` (Windows, NSIS, non signé)
+2. `Zetabot-0.56.0-x64.dmg` (macOS **Intel**, non signé, non notarié)
+3. un `.apk` (Android, apps/mobile, Expo) — debug ou release signé avec une clé générée, peu importe
+Critère : `gh run view <id>` vert et les 3 artefacts présents dans le run.
+
+## Ce que tu dois faire
+1. Écrire `.github/workflows/zetabot-build.yml` (workflow_dispatch) avec 3 jobs :
+   - `windows-latest` : `oven-sh/setup-bun@v2`, Node 24, `bun install`, puis build Electron Windows
+     (`bun run dist:win --publish never` si ça marche, sinon `bunx electron-builder --win nsis --x64 --publish never`),
+     upload de l'artefact `Zetabot-windows` (`dist/*.exe`).
+   - `macos-13` (Intel) : mêmes préparations, build `--mac dmg --x64 --publish never`, artefact `Zetabot-macos`
+     (`dist/*.dmg`). La signature doit rester ad-hoc (`CSC_IDENTITY_AUTO_DISCOVERY=false`).
+   - `ubuntu-latest` : JDK 17 (`actions/setup-java`), Android SDK (`android-actions/setup-android`),
+     `cd apps/mobile`, `bun install`, `bunx expo prebuild --platform android --no-install`, puis
+     `cd android && ./gradlew assembleRelease` (génère un keystore avec `keytool` si nécessaire), artefact `Zetabot-android` (`*.apk`).
+   - Aucun secret, aucun signing Apple/Windows. `timeout-minutes: 90` par job.
+2. Committer et pousser sur `zetabot`, déclencher : `gh workflow run zetabot-build.yml --ref zetabot`.
+3. Suivre chaque run (`gh run list`, `gh run view <id> --log-failed`), corriger, relancer.
+   Boucle maximum : 6 itérations. Au-delà, tu t'arrêtes et tu expliques le blocage exact.
+
+## Pièges connus
+- `bun install` peut échouer sur des dépendances natives (voice/onnxruntime) : si un job échoue là, désactive l'étape
+  voix (`voice:prepare-runtime`) ou passe `--dir` pour ne pas la déclencher.
+- Le build mac télécharge des runtimes (remote-desktop-runtime, cua-driver) : si l'URL est morte, retire l'étape.
+- `apps/mobile` est une app Expo : `expo prebuild` peut demander un `projectId` EAS — dans ce cas, mets un
+  `extra.eas.projectId` bidon ou utilise `--no-install` + config locale. Ne bloque pas là-dessus plus de 2 essais.
+- Ne touche à rien d'autre dans le code applicatif.
+
+## Réponse attendue (max 15 lignes)
+Fichier workflow créé, numéro de run final, statut par job, URL des artefacts, et ce qui reste cassé avec l'erreur exacte.

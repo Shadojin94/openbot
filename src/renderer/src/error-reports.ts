@@ -33,6 +33,12 @@ export function configureDesktopReports(
   tracking: boolean,
   user: Pick<CentralAuthUser, "id" | "email"> | null,
 ): void {
+  // ZETABOT : aucun rapport d'erreur n'est collecté ni envoyé.
+  void info;
+  void tracking;
+  void user;
+  return;
+  // eslint-disable-next-line no-unreachable
   const capture = info.analyticsCaptureUrl;
   if (capture === undefined && (!import.meta.env.PROD || info.variant !== "production")) return;
   queue ??= new ReportQueue(
