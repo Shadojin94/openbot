@@ -42,6 +42,9 @@ function filterMobilePayload(event: TrackHandlerPayload): boolean {
 }
 
 export const mobileAnalytics = new MobileAnalytics(() => {
+  // ZETABOT : analytique mobile désactivée, quelles que soient les variables d'environnement.
+  return null;
+  // eslint-disable-next-line no-unreachable
   const clientId = process.env.EXPO_PUBLIC_OPENPANEL_CLIENT_ID;
   const clientSecret = process.env.EXPO_PUBLIC_OPENPANEL_CLIENT_SECRET;
   if (
