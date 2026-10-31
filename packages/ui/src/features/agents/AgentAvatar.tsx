@@ -1,13 +1,4 @@
-import {
-  type Block,
-  BloubBot,
-  BotEngine,
-  type BotFrame,
-  DEMI_VIEWBOX,
-  makeBlock,
-  POSES,
-  RAYON,
-} from "@norbert_bodziony/bloub";
+import { type Block, BloubBot, makeBlock, POSES } from "@norbert_bodziony/bloub";
 import {
   type AvatarMood,
   avatarMoodIsBusy,
@@ -17,7 +8,7 @@ import {
 import type { AvatarHue } from "@openbot/contracts/ipc";
 import { prefersReducedMotion } from "@openbot/ui/utils";
 import type { JSX } from "@solidjs/web";
-import { createEffect, createMemo, createSignal, createUniqueId, For, onSettled, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, onSettled, Show } from "solid-js";
 import { type AvatarMotion, bloubAvatarProfile, type SupportedAvatarSilhouetteId } from "../../bloub-avatar";
 import type { AgentProfile } from "../../data";
 import { createPointerGaze } from "./avatar-pointer-gaze";
@@ -36,10 +27,6 @@ const DEFAULT_CYCLE: Block[] = [
   makeBlock("wide"),
   slowerBlock("idle"),
 ];
-
-// Decor rings are sampled from the `orbit` pose, not played as a state: `orbit`
-// replaces the body, while sampling only `frame.arcs` keeps the silhouette.
-const RING_POSE = "orbit";
 
 // Motions that rest until pointer/focus arrives. The sidebar is not virtualized, so every
 // row would otherwise animate on screen; idle-window profiles showed 83 recalcs/s from
@@ -125,9 +112,8 @@ export function AgentAvatar(props: AgentAvatarProps) {
         data-breathe={breathe()}
         aria-hidden="true"
       >
-        {/* A photo cannot wear an expression, so the Bloub's own decor carries the mood around it.
-            A working agent used to hide behind three dots, which hid the one thing the person
-            chose; it now keeps its face and flies the same rings the generated avatar does. */}
+        {/* A photo cannot wear an expression, so the spectral thread carries the mood around it,
+            the same one the generated avatar wears. */}
         <AvatarRings when={presentation().rings}>
           <AvatarImage url={url()} onFailed={() => setImageFailed(true)} />
         </AvatarRings>
@@ -141,128 +127,18 @@ function AvatarImage(props: { url: string | null; onFailed: () => void }) {
 }
 
 /**
- * Orbit rings drawn around the avatar instead of in place of it, sampled from a second
- * engine so a working avatar keeps its silhouette (`orbit` as a state is not shape-safe).
+ * The Zetamind spectral thread: one thin ring of the eight spectrum colours that turns around a
+ * working avatar. It is CSS only, so a busy row starts no animation loop of its own, and the avatar
+ * keeps its silhouette and its face.
  */
 function AvatarRings(props: { when: boolean; children: JSX.Element }) {
   return (
-    <Show when={props.when} fallback={props.children}>
-      <OrbitRings>{props.children}</OrbitRings>
-    </Show>
-  );
-}
-
-function OrbitRings(props: { children: JSX.Element }) {
-  let elapsed = POSES[RING_POSE];
-  let ringsSeen = false;
-  let anchor: SVGSVGElement | undefined;
-  const engine = new BotEngine(RAYON, RING_POSE);
-  const [arcs, setArcs] = createSignal<BotFrame["arcs"]>(engine.sample(elapsed).arcs, { equals: false });
-
-  onSettled(() => {
-    if (prefersReducedMotion()) return;
-    let handle = 0;
-    let previousFrameAt = 0;
-    let drawnAt = -Infinity;
-    const step = (now: number) => {
-      handle = requestAnimationFrame(step);
-      elapsed += previousFrameAt ? Math.min((now - previousFrameAt) / 1000, 0.064) : 0;
-      previousFrameAt = now;
-      if (elapsed - drawnAt < 1 / AVATAR_FPS) return;
-      drawnAt = elapsed;
-      let sampled = engine.sample(elapsed);
-      // A pose plays once, and its rings fade out before it ends - orbit holds them for 3.6s of a
-      // 4.3s block. So the pose restarts on the frame its rings run out, which is the engine's own
-      // measure of the cycle rather than a duration restated here.
-      if (ringsSeen && sampled.arcs.length === 0) {
-        ringsSeen = false;
-        engine.reset(RING_POSE, elapsed);
-        sampled = engine.sample(elapsed);
-      }
-      ringsSeen ||= sampled.arcs.length > 0;
-      setArcs(sampled.arcs);
-    };
-    const stop = () => {
-      if (!handle) return;
-      cancelAnimationFrame(handle);
-      handle = 0;
-    };
-    const start = () => {
-      if (handle) return;
-      // The clock restarts from the next frame, so a row that scrolls back in resumes where it
-      // stopped rather than jumping forward by the time it spent out of sight.
-      previousFrameAt = 0;
-      handle = requestAnimationFrame(step);
-    };
-    // A `BloubBot` pauses itself off screen through its own observer. These rings are our loop, so
-    // without the same gate every working row in a long sidebar keeps sampling an engine and
-    // writing paths that nobody can see.
-    const observer =
-      anchor && window.IntersectionObserver
-        ? new IntersectionObserver(([entry]) => {
-            if (entry?.isIntersecting) start();
-            else stop();
-          })
-        : undefined;
-    if (observer && anchor) observer.observe(anchor);
-    else start();
-    return () => {
-      observer?.disconnect();
-      stop();
-    };
-  });
-
-  return (
     <>
-      <AvatarArcs arcs={arcs()} half="back" ref={(element) => (anchor = element)} />
       {props.children}
-      <AvatarArcs arcs={arcs()} half="front" />
+      <Show when={props.when}>
+        <span class="agent-avatar-fil" aria-hidden="true" />
+      </Show>
     </>
-  );
-}
-
-function AvatarArcs(props: { arcs: BotFrame["arcs"]; half: "back" | "front"; ref?: (element: SVGSVGElement) => void }) {
-  const gradientId = createUniqueId();
-  return (
-    <svg
-      ref={props.ref}
-      class="agent-avatar-arcs"
-      viewBox={`${-DEMI_VIEWBOX} ${-DEMI_VIEWBOX} ${DEMI_VIEWBOX * 2} ${DEMI_VIEWBOX * 2}`}
-      fill="none"
-      stroke-linecap="round"
-      aria-hidden="true"
-    >
-      <defs>
-        <For each={props.arcs} keyed={false}>
-          {(arc) => (
-            <linearGradient
-              id={`${gradientId}-${arc().id}`}
-              gradientUnits="userSpaceOnUse"
-              x1={arc().grad.x1}
-              y1={arc().grad.y1}
-              x2={arc().grad.x2}
-              y2={arc().grad.y2}
-            >
-              <For each={arc().grad.stops} keyed={false}>
-                {(stop, index) => (
-                  <stop offset={index / Math.max(1, arc().grad.stops.length - 1)} stop-color={stop()} />
-                )}
-              </For>
-            </linearGradient>
-          )}
-        </For>
-      </defs>
-      <For each={props.arcs} keyed={false}>
-        {(arc) => (
-          <path
-            d={props.half === "back" ? arc().back : arc().front}
-            stroke={`url(#${gradientId}-${arc().id})`}
-            stroke-width={arc().width}
-            opacity={arc().opacity}
-          />
-        )}
-      </For>
-    </svg>
   );
 }
 

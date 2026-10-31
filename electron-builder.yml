@@ -91,14 +91,11 @@ mac:
   minimumSystemVersion: "13.0"
   notarize: false
   hardenedRuntime: false
-  # macOS 26 shows the catalog that `CFBundleIconName` names, with our own dark version; without it,
-  # macOS 26 makes the dark icon a black tile with black eyes. The catalog also has flat images, and
-  # `icon.icns` stays for macOS versions that read only `CFBundleIconFile`. Make the catalog again
-  # with `bun scripts/compile-macos-icon.ts` after a change to the `.icon` file.
+  # Zetabot ships only `icon.icns`, made from the Zetabot mark. The old `Assets.car` catalog and its
+  # `CFBundleIconName` held the OpenBot icon, so they are left out until the catalog is made again
+  # from a Zetabot `.icon` file with `bun scripts/compile-macos-icon.ts` (it needs Xcode's actool).
   icon: build/zetabot-1024.png
   extraResources:
-    - from: build/macos/Assets.car
-      to: Assets.car
     - from: build/icon-production-macos-safe-area.png
       to: icons/icon-production-macos-safe-area.png
     - from: build/icon-dev-macos-safe-area.png
@@ -122,7 +119,6 @@ mac:
   entitlementsInherit: build/entitlements.mac.inherit.plist
   darkModeSupport: true
   extendInfo:
-    CFBundleIconName: Icon
     ElectronTeamID: ZTRDTUL87R
     NSMicrophoneUsageDescription: OpenBot uses the microphone to transcribe voice prompts locally on this Mac.
     # Computer Use runs the driver as a child process, so macOS asks for both grants in OpenBot's

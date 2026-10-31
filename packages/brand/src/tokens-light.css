@@ -20,6 +20,8 @@
  */
 
 :root[data-openbot-color-scheme="light"] {
+  /* The spectral thread darkened for a white ground, as in the Zetamind design system. */
+  --openbot-spectre: #0099ae, #3d7bff, #8b5cf6, #c026d3, #ff3395, #ec5e00, #ac8600, #00a053, #0099ae;
   color-scheme: light;
 
   --openbot-bg-canvas: #f5f5f6;
