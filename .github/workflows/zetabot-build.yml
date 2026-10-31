@@ -123,7 +123,16 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - uses: android-actions/setup-android@v3
+      # Le SDK Android est déjà présent sur les runners ubuntu ; setup-android@v3 échoue
+      # sur « Failed to find package 'tools' ». On accepte les licences directement.
+      - name: Licences Android SDK
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" --list_installed | head -20 || true
 
       - name: Give Gradle more memory
         run: |
