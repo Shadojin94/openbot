@@ -1,0 +1,162 @@
+name: Zetabot build
+
+# Unsigned Zetabot builds for Windows, macOS Intel and Android. This workflow reads no secrets.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zetabot-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows x64 (NSIS, unsigned)
+    runs-on: windows-latest
+    timeout-minutes: 90
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Bun, Node and dependencies
+        uses: ./.github/actions/setup-bun
+
+      - name: Install provider control artifacts
+        run: |
+          bun scripts/install-codex-runtime.ts win32 x64
+          bun scripts/install-claude-runtime.ts win32 x64
+          bun scripts/install-grok-runtime.ts win32 x64
+
+      - name: Build NSIS installer
+        shell: pwsh
+        run: |
+          bun run dist:win
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Zetabot-windows
+          path: dist/*.exe
+          if-no-files-found: error
+          retention-days: 14
+
+  macos:
+    name: macOS x64 (DMG, ad-hoc signature)
+    # macos-13 is retired; macos-15-intel is the Intel runner that release.yml uses.
+    runs-on: macos-15-intel
+    timeout-minutes: 90
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Bun, Node and dependencies
+        uses: ./.github/actions/setup-bun
+
+      - name: Install native runtimes
+        run: |
+          bun run install:codex-runtime
+          bun run install:claude-runtime
+          bun run install:grok-runtime
+          bun run install:remote-desktop-runtime
+          bun run verify:remote-desktop-runtime
+          bun run prepare:cua-driver
+
+      - name: Build DMG
+        shell: bash
+        run: |
+          bun run voice:prepare-runtime
+          bun run build
+          log="$RUNNER_TEMP/electron-builder-mac.log"
+          for attempt in 1 2 3; do
+            if bun x electron-builder --mac dmg --x64 --publish never \
+              --config.mac.identity=null --config.mac.notarize=false 2>&1 | tee "$log"; then
+              exit 0
+            fi
+            if grep -Eq 'hdiutil: create failed - (Device not configured|Resource busy)' "$log"; then
+              echo "::warning::hdiutil could not create the DMG (attempt $attempt of 3)."
+            else
+              exit 1
+            fi
+          done
+          exit 1
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Zetabot-macos
+          path: dist/*.dmg
+          if-no-files-found: error
+          retention-days: 14
+
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      CI: "1"
+      EXPO_NO_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # A React Native release build needs more disk than the runner leaves free.
+      - name: Free runner disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost /opt/hostedtoolcache/CodeQL
+          df -h "$GITHUB_WORKSPACE"
+
+      - name: Set up Bun, Node and dependencies
+        uses: ./.github/actions/setup-bun
+
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Give Gradle more memory
+        run: |
+          mkdir -p ~/.gradle
+          echo 'org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=2g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8' >> ~/.gradle/gradle.properties
+          echo 'org.gradle.workers.max=2' >> ~/.gradle/gradle.properties
+          sudo fallocate -l 8G /swapfile-build
+          sudo chmod 600 /swapfile-build
+          sudo mkswap /swapfile-build
+          sudo swapon /swapfile-build
+
+      - name: Generate native Android project
+        working-directory: apps/mobile
+        env:
+          EXPO_PUBLIC_APP_ENV: production
+        run: bunx expo prebuild --platform android --no-install --clean
+
+      # The generated release build type signs with the debug keystore, so no key is needed.
+      - name: Build release APK
+        working-directory: apps/mobile/android
+        env:
+          EXPO_PUBLIC_APP_ENV: production
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a --no-daemon
+
+      - name: Rename APK
+        run: |
+          mkdir -p out-apk
+          cp apps/mobile/android/app/build/outputs/apk/release/*.apk out-apk/Zetabot-0.56.0-arm64.apk
+          ls -la out-apk
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Zetabot-android
+          path: out-apk/*.apk
+          if-no-files-found: error
+          retention-days: 14
