@@ -2661,7 +2661,8 @@ export async function createApplicationServices({
     throw new Error(`Unsupported analytics platform: ${analyticsPlatform}`);
   }
   performance.mark("openbot:services.remote-desktop");
-  const analyticsEnabled = (app.isPackaged && appVariant === "production") || analyticsCaptureUrl !== null;
+  // ZETABOT : télémétrie coupée. Aucun rapport, aucun événement, quel que soit le variant.
+  const analyticsEnabled = false;
   const failureReports = analyticsEnabled
     ? new ReportQueue(
         fileReportStorage(join(app.getPath("userData"), "openbot-error-reports-v1.json")),
