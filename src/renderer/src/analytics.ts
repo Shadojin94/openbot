@@ -830,7 +830,7 @@ class DesktopAnalytics {
   readonly #productionBuild: boolean;
   #client: OpenPanelClient | null = null;
   #anonymousClient: OpenPanelClient | null = null;
-  #disabled = false;
+  #disabled = true; // ZETABOT : analytique renderer désactivée pour toujours.
   #trackingEnabled = true;
   #identity: AnalyticsIdentity | null = null;
   #pending: PendingEvent[] = [];

@@ -1,9 +1,10 @@
-appId: app.openbot.desktop
-productName: OpenBot
+appId: run.zetamind.zetabot
+productName: Zetabot
 copyright: Copyright © 2026 Synthetify Labs spółka z ograniczoną odpowiedzialnością
 protocols:
-  - name: OpenBot invitations
+  - name: Zetabot invitations
     schemes:
+      - zetabot
       - openbot
 asar: true
 artifactName: ${productName}-${version}-${arch}.${ext}
@@ -18,10 +19,7 @@ electronFuses:
   onlyLoadAppFromAsar: true
   loadBrowserProcessSpecificV8Snapshot: false
   grantFileProtocolExtraPrivileges: false
-publish:
-  provider: github
-  owner: nightly-labs
-  repo: openbot
+publish: null
 files:
   - out/**/*
   - package.json
@@ -91,13 +89,13 @@ toolsets:
 mac:
   category: public.app-category.productivity
   minimumSystemVersion: "13.0"
-  notarize: true
-  hardenedRuntime: true
+  notarize: false
+  hardenedRuntime: false
   # macOS 26 shows the catalog that `CFBundleIconName` names, with our own dark version; without it,
   # macOS 26 makes the dark icon a black tile with black eyes. The catalog also has flat images, and
   # `icon.icns` stays for macOS versions that read only `CFBundleIconFile`. Make the catalog again
   # with `bun scripts/compile-macos-icon.ts` after a change to the `.icon` file.
-  icon: build/icon-production.icns
+  icon: build/zetabot-1024.png
   extraResources:
     - from: build/macos/Assets.car
       to: Assets.car
@@ -142,7 +140,7 @@ mac:
     - dmg
     - zip
 win:
-  icon: build/icon-production.ico
+  icon: build/zetabot-1024.png
   extraResources:
     - from: .openbot-build/voice/runtime
       to: voice/runtime
