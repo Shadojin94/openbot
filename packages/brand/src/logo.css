@@ -148,18 +148,13 @@
 }
 
 @keyframes app-logo-party-spin {
-  0% {
-    rotate: 0deg;
+  0%,
+  100% {
     scale: 1;
   }
 
   50% {
     scale: 1.06;
-  }
-
-  100% {
-    rotate: 360deg;
-    scale: 1;
   }
 }
 

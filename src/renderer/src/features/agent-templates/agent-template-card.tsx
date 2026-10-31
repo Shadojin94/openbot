@@ -125,7 +125,7 @@ async function drawColumn(
   context.textBaseline = "alphabetic";
 
   // The brand row: the mark and the wordmark.
-  await drawLogo(context, x, 92, 44, colors);
+  await drawLogo(context, x, 92, 44);
   context.fillStyle = colors.primary;
   context.font = `600 28px ${FONT}`;
   context.fillText("OpenBot", x + 58, 124);
@@ -171,28 +171,17 @@ async function drawColumn(
   context.fillText("openbot.run", x + pillWidth + 24, pillTop + 38);
 }
 
-/** The app mark from `@openbot/brand`, with its CSS colours written onto the shapes. */
-export async function drawLogo(
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  size: number,
-  colors: Pick<ThemeColors, "logo" | "logoEye">,
-): Promise<void> {
+/** The app mark from `@openbot/brand`, with its colours written onto the shapes. */
+export async function drawLogo(context: CanvasRenderingContext2D, x: number, y: number, size: number): Promise<void> {
   const host = document.createElement("span");
   const dispose = render(() => <AppLogo variant="production" />, host);
   flush();
   const svg = host.querySelector("svg")?.cloneNode(true);
   dispose();
   if (!(svg instanceof SVGSVGElement)) return;
-  svg.querySelector(".app-logo-background")?.setAttribute("fill", colors.logo);
-  for (const eye of svg.querySelectorAll(".app-logo-eye")) {
-    eye.setAttribute("fill", "none");
-    eye.setAttribute("stroke", colors.logoEye);
-    eye.setAttribute("stroke-width", "9.5");
-    eye.setAttribute("stroke-linecap", "round");
-    eye.setAttribute("stroke-linejoin", "round");
-  }
+  // The Zetabot mark is a black tile with light eyes in every theme; the halo carries its own colours.
+  svg.querySelector(".app-logo-background")?.setAttribute("fill", "#000");
+  for (const eye of svg.querySelectorAll(".app-logo-eye")) eye.setAttribute("fill", "#f5f5f7");
   context.drawImage(await loadSvg(svg, size), x, y, size, size);
 }
 

@@ -33,7 +33,6 @@
 }
 
 .whats-new-logo {
-  --app-logo-background: var(--openbot-surface-light);
   width: 56px;
   height: 56px;
   margin-block-end: var(--openbot-space-3);
