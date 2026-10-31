@@ -241,9 +241,9 @@ if (commandLineUserDataDirectory) {
     ),
   );
 }
-app.setName("OpenBot");
+app.setName("Zetabot");
 app.enableSandbox();
-if (process.platform === "win32") app.setAppUserModelId("app.openbot.desktop");
+if (process.platform === "win32") app.setAppUserModelId("run.zetamind.zetabot");
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
 // A second launch exits at once and must not write into the files of the instance that runs.
 if (hasSingleInstanceLock) {

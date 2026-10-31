@@ -1,17 +1,19 @@
 {
   "expo": {
-    "name": "OpenBot",
-    "slug": "openbot",
+    "name": "Zetabot",
+    "slug": "zetabot",
     "platforms": ["ios", "android"],
     "version": "1.4.5",
     "orientation": "portrait",
     "icon": "./assets/icons/app-icon.png",
-    "scheme": "openbot",
+    "scheme": "zetabot",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "bundleIdentifier": "run.openbot.mobile",
+      "bundleIdentifier": "run.zetamind.zetabot",
       "supportsTablet": true,
-      "associatedDomains": ["applinks:openbot.run"],
+      "associatedDomains": [
+        "applinks:zetamind.local"
+      ],
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "Allow OpenBot to connect to your desktop during local development.",
         "NSAppTransportSecurity": {
@@ -22,10 +24,12 @@
       "icon": "./assets/icons/app-icon.icon"
     },
     "android": {
-      "package": "run.openbot.mobile",
+      "package": "run.zetamind.zetabot",
       "icon": "./assets/icons/app-icon.png",
       "predictiveBackGestureEnabled": false,
-      "permissions": ["android.permission.CAMERA"],
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
       "blockedPermissions": [
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_MEDIA_VIDEO",
@@ -76,7 +80,9 @@
         {
           "photosPermission": "Allow OpenBot to access the photos you choose to share.",
           "savePhotosPermission": "Allow OpenBot to save images and videos you download from a chat to your photo library.",
-          "granularPermissions": ["photo"]
+          "granularPermissions": [
+            "photo"
+          ]
         }
       ],
       [
@@ -131,8 +137,14 @@
           },
           "android": {
             "enabled": true,
-            "singleShareMimeTypes": ["text/*", "image/*", "application/*"],
-            "multipleShareMimeTypes": ["*/*"]
+            "singleShareMimeTypes": [
+              "text/*",
+              "image/*",
+              "application/*"
+            ],
+            "multipleShareMimeTypes": [
+              "*/*"
+            ]
           }
         }
       ],
@@ -167,13 +179,36 @@
               {
                 "fontFamily": "Inter",
                 "fontDefinitions": [
-                  { "path": "./assets/fonts/inter/Inter-Regular.ttf", "weight": 400 },
-                  { "path": "./assets/fonts/inter/Inter-Italic.ttf", "weight": 400, "style": "italic" },
-                  { "path": "./assets/fonts/inter/Inter-Medium.ttf", "weight": 500 },
-                  { "path": "./assets/fonts/inter/Inter-SemiBold.ttf", "weight": 600 },
-                  { "path": "./assets/fonts/inter/Inter-Bold.ttf", "weight": 700 },
-                  { "path": "./assets/fonts/inter/Inter-BoldItalic.ttf", "weight": 700, "style": "italic" },
-                  { "path": "./assets/fonts/inter/Inter-ExtraBold.ttf", "weight": 800 }
+                  {
+                    "path": "./assets/fonts/inter/Inter-Regular.ttf",
+                    "weight": 400
+                  },
+                  {
+                    "path": "./assets/fonts/inter/Inter-Italic.ttf",
+                    "weight": 400,
+                    "style": "italic"
+                  },
+                  {
+                    "path": "./assets/fonts/inter/Inter-Medium.ttf",
+                    "weight": 500
+                  },
+                  {
+                    "path": "./assets/fonts/inter/Inter-SemiBold.ttf",
+                    "weight": 600
+                  },
+                  {
+                    "path": "./assets/fonts/inter/Inter-Bold.ttf",
+                    "weight": 700
+                  },
+                  {
+                    "path": "./assets/fonts/inter/Inter-BoldItalic.ttf",
+                    "weight": 700,
+                    "style": "italic"
+                  },
+                  {
+                    "path": "./assets/fonts/inter/Inter-ExtraBold.ttf",
+                    "weight": 800
+                  }
                 ]
               },
               "katex/dist/fonts/KaTeX_AMS-Regular.ttf",
