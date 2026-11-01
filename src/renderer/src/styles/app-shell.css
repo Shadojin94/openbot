@@ -2497,8 +2497,8 @@ textarea {
   }
 }
 
-/* The Zetamind spectral thread around a working agent: a 2px ring of the spectrum that turns, as
-   the design system's active progress ring does. It sits just outside the avatar box. */
+/* The Zetamind spectral thread around a working agent: a 1px ring of the spectrum that turns slowly
+   (12s a turn), as the design system's thread does. It sits just outside the avatar box. */
 @property --agent-avatar-fil-angle {
   syntax: "<angle>";
   initial-value: 0deg;
@@ -2511,12 +2511,12 @@ textarea {
 
 .agent-avatar > .agent-avatar-fil {
   position: absolute;
-  inset: -5px;
+  inset: -4px;
   border-radius: 999px;
   background: conic-gradient(from var(--agent-avatar-fil-angle), var(--openbot-spectre));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2.6px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 1.6px), #000 calc(100% - 1px));
   pointer-events: none;
-  animation: agent-avatar-fil-turn 2.4s linear infinite;
+  animation: agent-avatar-fil-turn 12s linear infinite;
 }
 
 @keyframes agent-avatar-fil-turn {
