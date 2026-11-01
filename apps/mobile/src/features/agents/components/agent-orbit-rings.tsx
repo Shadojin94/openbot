@@ -19,7 +19,7 @@ const SPECTRE_LIGHT = ["#0099ae", "#3d7bff", "#8b5cf6", "#c026d3", "#ff3395", "#
 /** One turn of the thread, in milliseconds: the same slow pace as the desktop ring. */
 const TURN_MS = 12000;
 /** The ring sits this many points outside the avatar box, and is this thick. */
-const RING_GAP = 3;
+const RING_GAP = 4;
 const RING_WIDTH = 1;
 
 function pointOnCircle(center: number, radius: number, angle: number): { x: number; y: number } {
