@@ -16,11 +16,11 @@ import { useScreenFocusedWhile } from "@/shared/lib/use-screen-focused-while";
 /** The Zetamind spectral thread (design system Rev. 6), dark and light, as on the desktop. */
 const SPECTRE_DARK = ["#22e4ff", "#3d7bff", "#8b5cf6", "#c026d3", "#ff4fa3", "#ff8a3d", "#ffd84d", "#5cffb0"];
 const SPECTRE_LIGHT = ["#0099ae", "#3d7bff", "#8b5cf6", "#c026d3", "#ff3395", "#ec5e00", "#ac8600", "#00a053"];
-/** One turn of the thread, in milliseconds: the same pace as the desktop ring. */
-const TURN_MS = 2400;
+/** One turn of the thread, in milliseconds: the same slow pace as the desktop ring. */
+const TURN_MS = 12000;
 /** The ring sits this many points outside the avatar box, and is this thick. */
 const RING_GAP = 3;
-const RING_WIDTH = 2;
+const RING_WIDTH = 1;
 
 function pointOnCircle(center: number, radius: number, angle: number): { x: number; y: number } {
   return { x: center + radius * Math.cos(angle), y: center + radius * Math.sin(angle) };
