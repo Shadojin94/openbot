@@ -11,9 +11,7 @@
     "ios": {
       "bundleIdentifier": "run.zetamind.zetabot",
       "supportsTablet": true,
-      "associatedDomains": [
-        "applinks:zetamind.local"
-      ],
+      "associatedDomains": ["applinks:zetamind.local"],
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "Allow OpenBot to connect to your desktop during local development.",
         "NSAppTransportSecurity": {
@@ -27,9 +25,7 @@
       "package": "run.zetamind.zetabot",
       "icon": "./assets/icons/app-icon.png",
       "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.CAMERA"
-      ],
+      "permissions": ["android.permission.CAMERA"],
       "blockedPermissions": [
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_MEDIA_VIDEO",
@@ -80,9 +76,7 @@
         {
           "photosPermission": "Allow OpenBot to access the photos you choose to share.",
           "savePhotosPermission": "Allow OpenBot to save images and videos you download from a chat to your photo library.",
-          "granularPermissions": [
-            "photo"
-          ]
+          "granularPermissions": ["photo"]
         }
       ],
       [
@@ -137,14 +131,8 @@
           },
           "android": {
             "enabled": true,
-            "singleShareMimeTypes": [
-              "text/*",
-              "image/*",
-              "application/*"
-            ],
-            "multipleShareMimeTypes": [
-              "*/*"
-            ]
+            "singleShareMimeTypes": ["text/*", "image/*", "application/*"],
+            "multipleShareMimeTypes": ["*/*"]
           }
         }
       ],

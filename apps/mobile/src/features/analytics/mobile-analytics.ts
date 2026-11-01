@@ -41,13 +41,14 @@ function filterMobilePayload(event: TrackHandlerPayload): boolean {
   return true;
 }
 
+/** ZETABOT : analytique mobile désactivée, quelles que soient les variables d'environnement. */
+const ZETABOT_ANALYTICS_OFF: boolean = true;
+
 export const mobileAnalytics = new MobileAnalytics(() => {
-  // ZETABOT : analytique mobile désactivée, quelles que soient les variables d'environnement.
-  return null;
-  // eslint-disable-next-line no-unreachable
   const clientId = process.env.EXPO_PUBLIC_OPENPANEL_CLIENT_ID;
   const clientSecret = process.env.EXPO_PUBLIC_OPENPANEL_CLIENT_SECRET;
   if (
+    ZETABOT_ANALYTICS_OFF ||
     __DEV__ ||
     process.env.EXPO_PUBLIC_APP_ENV !== "production" ||
     !clientId ||

@@ -1,15 +1,9 @@
 import { readFile } from "node:fs/promises";
 import type { HostReleaseStatus, UpdateStatus } from "@openbot/contracts/ipc";
 import { Deferred, Effect, Exit, Schema } from "effect";
-import { parse } from "yaml";
 import { isValidSemver } from "./update-service";
 
 class ReleaseCheckFailed extends Schema.TaggedError<ReleaseCheckFailed>()("ReleaseCheckFailed", {}) {}
-
-const ReleaseManifest = Schema.Struct({
-  version: Schema.String.check(Schema.isMaxLength(64), Schema.isPattern(/^\d+\.\d+\.\d+$/u)),
-  files: Schema.Array(Schema.Struct({ url: Schema.String })),
-});
 
 type ReleaseTarget = { feed: string; asset: (version: string) => string };
 
